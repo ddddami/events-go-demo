@@ -1,0 +1,11 @@
+POST http://localhost:3000/events
+Content-Type: application/json
+
+{
+"title": "Event..",
+"description": "Description",
+"location": "Abuja",
+"dateTime": "2025-01-01T15:30:00.000Z"
+}
+
+  
