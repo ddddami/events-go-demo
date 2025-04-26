@@ -4,11 +4,16 @@ import (
 	"database/sql"
 	"flag"
 
+	"github.com/ddddami/events-go-demo/internal/models"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 const version = "1.0.0"
+
+type application struct {
+	events *models.EventModel
+}
 
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP server port")
@@ -23,9 +28,13 @@ func main() {
 
 	defer db.Close()
 
+	app := &application{
+		events: &models.EventModel{DB: db},
+	}
+
 	server := gin.Default()
 
-	registerRoutes(server)
+	registerRoutes(server, app)
 	server.Run(*addr)
 }
 
@@ -53,7 +62,7 @@ func createTables() {
 	stmt := `
 CREATE TABLE IF NOT EXISTS events (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	name TEXT NOT NULL,
+	title TEXT NOT NULL,
 	description TEXT NOT NULL,
 	location TEXT NOT NULL,
 	dateTime TEXT NOT NULL,

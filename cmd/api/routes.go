@@ -2,9 +2,9 @@ package main
 
 import "github.com/gin-gonic/gin"
 
-func registerRoutes(server *gin.Engine) {
+func registerRoutes(server *gin.Engine, app *application) {
 	server.GET("healthcheck/", healthcheck)
 
-	server.GET("/events", getEvents)
-	server.POST("/events", createEvent)
+	server.GET("/events", app.getEvents)
+	server.POST("/events", app.createEvent)
 }

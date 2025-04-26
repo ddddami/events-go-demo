@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ddddami/events-go-demo/internal/models"
@@ -15,23 +16,26 @@ func healthcheck(context *gin.Context) {
 	})
 }
 
-func getEvents(context *gin.Context) {
-	events := models.GetAllEvents()
+func (app *application) getEvents(context *gin.Context) {
+	events, err := app.events.GetAll()
+	if err != nil {
+		fmt.Print("Err") //
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "An error occured"})
+		return
+	}
 	context.JSON(http.StatusOK, events)
 }
 
-func createEvent(context *gin.Context) {
-	events := models.GetAllEvents()
-	var event models.Event
+func (app *application) createEvent(context *gin.Context) {
+	var e models.Event
 
-	err := context.ShouldBindJSON(&event)
+	err := context.ShouldBindJSON(&e)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data\n", "error": err})
 		return
 	}
 
-	event.ID = len(events) + 1
-	event.UserID = 1
-	event.Save()
-	context.JSON(http.StatusCreated, gin.H{"message": "Event created", "event": event})
+	e.UserID = 1
+	app.events.Insert(e.Title, e.Description, e.Location, e.DateTime, e.UserID)
+	context.JSON(http.StatusCreated, gin.H{"message": "Event created", "event": e})
 }
