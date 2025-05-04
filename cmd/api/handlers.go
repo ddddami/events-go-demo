@@ -84,3 +84,22 @@ func (app *application) updateEvent(context *gin.Context) {
 	}
 	context.JSON(http.StatusOK, gin.H{"message": "Event updated"})
 }
+
+func (app *application) deleteEvent(context *gin.Context) {
+	id, err := strconv.Atoi(context.Param("id"))
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not find an event with the given ID"})
+		return
+	}
+	_, err = app.events.GetByID(id)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not find an event with the given id"})
+		return
+	}
+	err = app.events.Delete(id)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not delete the event"})
+		return
+	}
+	context.JSON(http.StatusNoContent, gin.H{"message": "Event deleted"})
+}

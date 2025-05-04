@@ -84,3 +84,11 @@ func (m *EventModel) Update(e *Event) error {
 	_, err := m.DB.Exec(query, e.Title, e.Description, e.Location, e.DateTime, e.ID)
 	return err
 }
+
+func (m *EventModel) Delete(id int) error {
+	stmt := `
+	DELETE FROM events WHERE ID = ?
+	`
+	_, err := m.DB.Exec(stmt, id)
+	return err
+}
