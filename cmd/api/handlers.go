@@ -54,3 +54,33 @@ func (app *application) createEvent(context *gin.Context) {
 	app.events.Insert(e.Title, e.Description, e.Location, e.DateTime, e.UserID)
 	context.JSON(http.StatusCreated, gin.H{"message": "Event created", "event": e})
 }
+
+func (app *application) updateEvent(context *gin.Context) {
+	id, err := strconv.Atoi(context.Param("id"))
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Invalid event ID", "error": err})
+		return
+	}
+
+	_, err = app.events.GetByID(id)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "No event with the given ID", "error": err})
+		return
+	}
+
+	var newEvent models.Event
+
+	err = context.ShouldBind(&newEvent)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data"})
+		return
+	}
+
+	newEvent.ID = id
+	err = app.events.Update(&newEvent)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not update the event", "err": err.Error()})
+		return
+	}
+	context.JSON(http.StatusOK, gin.H{"message": "Event updated"})
+}

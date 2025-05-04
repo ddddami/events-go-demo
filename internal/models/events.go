@@ -73,3 +73,14 @@ func (m *EventModel) GetByID(id int) (Event, error) {
 
 	return e, nil
 }
+
+func (m *EventModel) Update(e *Event) error {
+	query := `
+	UPDATE events
+	SET title = ?, description = ?, location = ?, dateTime = ?
+	WHERE id = ?
+	`
+
+	_, err := m.DB.Exec(query, e.Title, e.Description, e.Location, e.DateTime, e.ID)
+	return err
+}
