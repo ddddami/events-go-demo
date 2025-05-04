@@ -68,3 +68,31 @@ func (m *UserModel) GenerateToken(email string, userID int) (string, error) {
 	})
 	return token.SignedString([]byte(secretKey))
 }
+
+func (m *UserModel) VerifyToken(token string) error {
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
+		_, ok := token.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(secretKey), nil
+	})
+	if err != nil {
+		return errors.New("could not parse token")
+	}
+
+	isValidToken := parsedToken.Valid
+	if !isValidToken {
+		return errors.New("invalid token")
+	}
+
+	// claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	// if !ok {
+	// 	return errors.New("Invalid token claims")
+	// }
+	//
+	// email := claims["email"].(string)
+	// userID := claims["userID"].(int)
+
+	return nil
+}
