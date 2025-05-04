@@ -19,18 +19,22 @@ type EventModel struct {
 	DB *sql.DB
 }
 
-func (m *EventModel) Insert(title, description, location string, dateTime time.Time, userID int) error {
+func (m *EventModel) Insert(title, description, location string, dateTime time.Time) (int, error) {
 	stmt := `
-	INSERT INTO events(title, description, location, dateTime, userId )
-	VALUES(?, ?, ?, ?, ?)
+	INSERT INTO events(title, description, location, dateTime)
+	VALUES(?, ?, ?, ?)
 `
 
-	_, err := m.DB.Exec(stmt, title, description, location, dateTime, userID)
+	result, err := m.DB.Exec(stmt, title, description, location, dateTime)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(id), nil
 }
 
 func (m *EventModel) GetAll() ([]Event, error) {

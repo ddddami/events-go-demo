@@ -43,32 +43,22 @@ func (app *application) getEvent(context *gin.Context) {
 }
 
 func (app *application) createEvent(context *gin.Context) {
-	token := context.Request.Header.Get("Authorization")
-	if token == "" {
-		context.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-		return
-	}
-
-	userID, err := app.users.VerifyToken(token)
-	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-		return
-	}
-
 	var e models.Event
 
-	err = context.ShouldBindJSON(&e)
+	err := context.ShouldBindJSON(&e)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data", "error": err.Error()})
 		return
 	}
 
-	err = app.events.Insert(e.Title, e.Description, e.Location, e.DateTime, e.UserID)
+	userID := context.GetInt("userID")
+
+	id, err := app.events.Insert(e.Title, e.Description, e.Location, e.DateTime)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not create event", "error": err.Error()})
 		return
 	}
-	e.ID = userID
+	e.ID = id
 	e.UserID = userID
 	context.JSON(http.StatusCreated, gin.H{"message": "Event created", "event": e})
 }

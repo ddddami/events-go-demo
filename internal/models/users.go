@@ -96,7 +96,7 @@ func (m *UserModel) VerifyToken(token string) (int, error) {
 		return 0, errors.New("invalid token claims")
 	}
 
-	userID := claims["userID"].(int)
+	userID := claims["userID"].(float64)
 
-	return userID, nil
+	return int(userID), nil
 }
