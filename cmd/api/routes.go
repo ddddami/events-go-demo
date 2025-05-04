@@ -12,4 +12,5 @@ func registerRoutes(server *gin.Engine, app *application) {
 	server.POST("/events", app.createEvent)
 	// users
 	server.POST("/signup", app.saveUser)
+	server.POST("/login", app.login)
 }

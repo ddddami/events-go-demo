@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -117,4 +118,26 @@ func (app *application) saveUser(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusCreated, gin.H{"message": "User created", "user": u})
+}
+
+func (app *application) login(context *gin.Context) {
+	var u models.User
+	err := context.ShouldBindJSON(&u)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data"})
+		return
+	}
+
+	id, err := app.users.Authenticate(u.Email, u.Password)
+	_ = id
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			context.JSON(http.StatusBadRequest, gin.H{"message": "Email or password is incorrect"})
+		} else {
+			context.JSON(http.StatusBadRequest, gin.H{"message": "Trouble authenticating user", "err": err.Error()})
+		}
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"message": "Login successful"})
 }
