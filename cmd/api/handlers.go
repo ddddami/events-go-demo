@@ -111,9 +111,10 @@ func (app *application) saveUser(context *gin.Context) {
 		return
 	}
 
-	_, err = app.users.Register(u.Email, u.Password)
+	err = app.users.Register(u.Email, u.Password)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not create user"})
+		return
 	}
 	context.JSON(http.StatusCreated, gin.H{"message": "User created", "user": u})
 }
