@@ -129,7 +129,6 @@ func (app *application) login(context *gin.Context) {
 	}
 
 	id, err := app.users.Authenticate(u.Email, u.Password)
-	_ = id
 	if err != nil {
 		if errors.Is(err, models.ErrInvalidCredentials) {
 			context.JSON(http.StatusBadRequest, gin.H{"message": "Email or password is incorrect"})
@@ -139,5 +138,10 @@ func (app *application) login(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+	token, err := app.users.GenerateToken(u.Email, id)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Trouble authenticating user", "err": err.Error()})
+		return
+	}
+	context.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
 }
