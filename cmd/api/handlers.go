@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/ddddami/events-go-demo/internal/models"
 	"github.com/gin-gonic/gin"
@@ -19,11 +19,26 @@ func healthcheck(context *gin.Context) {
 func (app *application) getEvents(context *gin.Context) {
 	events, err := app.events.GetAll()
 	if err != nil {
-		fmt.Print("Err") //
-		context.JSON(http.StatusInternalServerError, gin.H{"message": "An error occured"})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "An error occured", "error": err.Error()})
 		return
 	}
 	context.JSON(http.StatusOK, events)
+}
+
+func (app *application) getEvent(context *gin.Context) {
+	id, err := strconv.Atoi(context.Param("id"))
+	if err != nil {
+
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "An error occured"})
+		return
+	}
+
+	event, err := app.events.GetByID(id)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "An error occured"})
+		return
+	}
+	context.JSON(http.StatusOK, event)
 }
 
 func (app *application) createEvent(context *gin.Context) {

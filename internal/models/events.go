@@ -51,12 +51,25 @@ func (m *EventModel) GetAll() ([]Event, error) {
 
 	for rows.Next() {
 		var e Event
-		err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.Location, &e.DateTime, &e.UserID)
+		var rawTime string
+		err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.Location, &rawTime, &e.UserID)
 		if err != nil {
 			return nil, err
 		}
-
 		events = append(events, e)
 	}
 	return events, nil
+}
+
+func (m *EventModel) GetByID(id int) (Event, error) {
+	query := `SELECT id, title, description, location, dateTime, userId FROM events WHERE id = ?`
+	row := m.DB.QueryRow(query, id)
+
+	var e Event
+	err := row.Scan(&e.ID, &e.Title, &e.Description, &e.Location, &e.DateTime, &e.UserID)
+	if err != nil {
+		return Event{}, err
+	}
+
+	return e, nil
 }
