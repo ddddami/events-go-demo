@@ -19,18 +19,23 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-func (m *UserModel) Register(email, password string) error {
+func (m *UserModel) Register(email, password string) (int, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	stmt := `INSERT INTO users(email, password) VALUES(?, ?)`
-	_, err = m.DB.Exec(stmt, email, string(hashedPassword))
+	result, err := m.DB.Exec(stmt, email, string(hashedPassword))
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), nil
 }
 
 func (m *UserModel) Authenticate(email, password string) (int, error) {
@@ -69,7 +74,7 @@ func (m *UserModel) GenerateToken(email string, userID int) (string, error) {
 	return token.SignedString([]byte(secretKey))
 }
 
-func (m *UserModel) VerifyToken(token string) error {
+func (m *UserModel) VerifyToken(token string) (int, error) {
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
@@ -78,21 +83,20 @@ func (m *UserModel) VerifyToken(token string) error {
 		return []byte(secretKey), nil
 	})
 	if err != nil {
-		return errors.New("could not parse token")
+		return 0, errors.New("could not parse token")
 	}
 
 	isValidToken := parsedToken.Valid
 	if !isValidToken {
-		return errors.New("invalid token")
+		return 0, errors.New("invalid token")
 	}
 
-	// claims, ok := parsedToken.Claims.(jwt.MapClaims)
-	// if !ok {
-	// 	return errors.New("Invalid token claims")
-	// }
-	//
-	// email := claims["email"].(string)
-	// userID := claims["userID"].(int)
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return 0, errors.New("invalid token claims")
+	}
 
-	return nil
+	userID := claims["userID"].(int)
+
+	return userID, nil
 }

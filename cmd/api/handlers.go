@@ -49,7 +49,7 @@ func (app *application) createEvent(context *gin.Context) {
 		return
 	}
 
-	err := app.users.VerifyToken(token)
+	userID, err := app.users.VerifyToken(token)
 	if err != nil {
 		context.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
@@ -63,7 +63,13 @@ func (app *application) createEvent(context *gin.Context) {
 		return
 	}
 
-	app.events.Insert(e.Title, e.Description, e.Location, e.DateTime, e.UserID)
+	err = app.events.Insert(e.Title, e.Description, e.Location, e.DateTime, e.UserID)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not create event", "error": err.Error()})
+		return
+	}
+	e.ID = userID
+	e.UserID = userID
 	context.JSON(http.StatusCreated, gin.H{"message": "Event created", "event": e})
 }
 
@@ -124,11 +130,12 @@ func (app *application) saveUser(context *gin.Context) {
 		return
 	}
 
-	err = app.users.Register(u.Email, u.Password)
+	userID, err := app.users.Register(u.Email, u.Password)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not create user"})
 		return
 	}
+	u.ID = userID
 	context.JSON(http.StatusCreated, gin.H{"message": "User created", "user": u})
 }
 
