@@ -50,7 +50,6 @@ func (app *application) createEvent(context *gin.Context) {
 		return
 	}
 
-	e.UserID = 1
 	app.events.Insert(e.Title, e.Description, e.Location, e.DateTime, e.UserID)
 	context.JSON(http.StatusCreated, gin.H{"message": "Event created", "event": e})
 }
@@ -102,4 +101,19 @@ func (app *application) deleteEvent(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusNoContent, gin.H{"message": "Event deleted"})
+}
+
+func (app *application) saveUser(context *gin.Context) {
+	var u models.User
+	err := context.ShouldBindJSON(&u)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data"})
+		return
+	}
+
+	_, err = app.users.Register(u.Email, u.Password)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not create user"})
+	}
+	context.JSON(http.StatusCreated, gin.H{"message": "User created", "user": u})
 }

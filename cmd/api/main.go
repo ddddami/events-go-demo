@@ -13,6 +13,7 @@ const version = "1.0.0"
 
 type application struct {
 	events *models.EventModel
+	users  *models.UserModel
 }
 
 func main() {
@@ -30,6 +31,7 @@ func main() {
 
 	app := &application{
 		events: &models.EventModel{DB: db},
+		users:  &models.UserModel{DB: db},
 	}
 
 	server := gin.Default()
@@ -59,17 +61,32 @@ func initDB() (*sql.DB, error) {
 }
 
 func createTables() {
-	stmt := `
-CREATE TABLE IF NOT EXISTS events (
+	createUsersTable := `
+	CREATE TABLE IF NOT EXISTS users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	email TEXT NOT NULL UNIQUE,
+	password TEXT NOT NULL
+	)
+	`
+
+	_, err := DB.Exec(createUsersTable)
+	if err != nil {
+		panic("Error working with db")
+	}
+
+	createEventsTable := `
+	CREATE TABLE IF NOT EXISTS events (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	title TEXT NOT NULL,
 	description TEXT NOT NULL,
 	location TEXT NOT NULL,
 	dateTime DATETIME NOT NULL,
-	userId INTEGER
+	userId INTEGER,
+	FOREIGN KEY(userId) REFERENCES users(id)
 )
 `
-	_, err := DB.Exec(stmt)
+
+	_, err = DB.Exec(createEventsTable)
 	if err != nil {
 		panic("Error working with db")
 	}
